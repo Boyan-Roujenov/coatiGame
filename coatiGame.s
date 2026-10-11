@@ -1,34 +1,39 @@
 .data
 table: 
-.byte 10
-.byte 10
 .asciz "....C..BC..BC..BC..B...."
 format: .asciz "%3s" # We will only and exactly read three characters so we use %3s for safety
 
 invalidCoatiMessage: .byte 10
-.asciz "The requested cell does not contain 'C', a coati. It is team Coati's turn "
+.ascii "The requested cell does not contain 'C', a coati. It is team Coati's turn "
 .byte 10
+.zero 1
 invalidBeeMessage: .byte 10
-.asciz "The requested cell does not contain 'B', a bee. It is team Bees' turn."
+.ascii "The requested cell does not contain 'B', a bee. It is team Bees' turn."
 .byte 10
+.zero 1
 invalidMoveMessage: .byte 10
-.asciz "This move is illegal because the target cell is occupied. Nice try!"
+.ascii "This move is illegal because the target cell is occupied. Nice try!"
 .byte 10
+.zero 1
 invalidRowMessage: .byte 10
-.asciz "The first letter expects a row among [A, B, C, D, E, F]. Are you testing whether you can break it? Nice try!"
+.ascii "The first letter expects a row among [A, B, C, D, E, F]. Are you testing whether you can break it? Nice try!"
 .byte 10
+.zero 1
 outOfBoundsMessage:
 .byte 10
-.asciz "This move goes out of the bounds of the table. Nice try!"
+.ascii "This move goes out of the bounds of the table. Nice try!"
 .byte 10
+.zero 1
 invalidCommandLetterMessage:
 .byte 10
-.asciz "The third letter of your prompt is not a valid command among [F, U, D]"
+.ascii "The third letter of your prompt is not a valid command among [F, U, D]"
 .byte 10
+.zero 1
 invalidColumnInputMessage:
 .byte 10
-.asciz "The column you provided is >4 which is illegal. Nice try!"
+.ascii "The column you provided is >4 which is illegal. Nice try!"
 .byte 10
+.zero 1
 errorFormat: .asciz "%s"
 
 generalFormat: .asciz "%s"
@@ -69,8 +74,24 @@ beePrompt:
 .asciz "YOUR ATTACK: "
 .byte 10
 
-coatiWinMessage: .asciz "After a painstaking battle, despite numerous difficulties, the Coatis prevail. Their Overlord perhaps had to demonstrate mastery of IEEE-754, physical strength and strategic thinking, among other tests of Greatness. For that we commend him. Congratulations, team Coati!"
-beeWinMessage: .asciz "After a painstaking battle, despite numerous difficulties, the Bees prevail. Their Overlord perhaps had to demonstrate mastery of IEEE-754, physical strength and strategic thinking, among other tests of Greatness. For that we commend him. Congratulations, team Bees!"
+coatiWinMessage: .ascii "After a painstaking battle, despite numerous difficulties, the Coatis prevail. "
+.byte 10
+.ascii "Their Overlord perhaps had to demonstrate mastery of IEEE-754, "
+.byte 10
+.ascii "physical strength and strategic thinking, among other tests of Greatness. "
+.byte 10
+.ascii "For that we commend him. Congratulations, team Coati!"
+.byte 10
+.zero 1
+beeWinMessage: .ascii "After a painstaking battle, despite numerous difficulties, the Bees prevail. "
+.byte 10
+.ascii "Their Overlord perhaps had to demonstrate mastery of IEEE-754, "
+.byte 10
+.ascii "physical strength and strategic thinking, among other tests of Greatness. "
+.byte 10
+.ascii "For that we commend him. Congratulations, team Bees!"
+.byte 10
+.zero 1
 
 .text
 .globl main
