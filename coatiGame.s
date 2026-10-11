@@ -1,5 +1,8 @@
 .data
-table: .asciz "....C..BC..BC..BC..B...."
+table: 
+.byte 10
+.byte 10
+.asciz "....C..BC..BC..BC..B...."
 format: .asciz "%3s" # We will only and exactly read three characters so we use %3s for safety
 
 invalidCoatiMessage: .byte 10
@@ -13,6 +16,18 @@ invalidMoveMessage: .byte 10
 .byte 10
 invalidRowMessage: .byte 10
 .asciz "The first letter expects a row among [A, B, C, D, E, F]. Are you testing whether you can break it? Nice try!"
+.byte 10
+outOfBoundsMessage:
+.byte 10
+.asciz "This move goes out of the bounds of the table. Nice try!"
+.byte 10
+invalidCommandLetterMessage:
+.byte 10
+.asciz "The third letter of your prompt is not a valid command among [F, U, D]"
+.byte 10
+invalidColumnInputMessage:
+.byte 10
+.asciz "The column you provided is >4 which is illegal. Nice try!"
 .byte 10
 errorFormat: .asciz "%s"
 
@@ -141,7 +156,9 @@ movq $0, %rcx # zero rcx in order to use it as a position counter in the array
 
     addColumn:
     subq $'1', %rsi #convert the column from ascii to number BUT subtracting one because of 0-base indexing
-    addq %rsi, %rcx #after adding the column we have the precise location of the character in the array
+    cmpq $4, %rsi #check for wrong column input
+    jg invalidColumnInput
+    addq %rsi, %rcx #after adding the column to the array counter we have the precise location of the character in the array
 
     cmpq $0,%r12     #check if it is team coati's turn
     je coatiTurn
@@ -152,25 +169,51 @@ coatiTurn:
     cmpb $'C', table(%rcx) #Check if the requested cell indeed has a coati
     jne invalidCoati
 
+    movq %rcx, %rax #let rax store the address of the input cell
+    incq %rax #after increment, rax is now the cell forward from rcx. We know we don't get column overflow because of the win condition.
+
     cmpb $'F', %dl #check if the command is F, forward
     je coatiForward
 
+    cmpb $'D', %dl #check if the command is D, forward and down
+    je coatiDown
+
+    cmpb $'U', %dl #check if the command is U, forward and up
+    je coatiUp
+
+    jmp invalidCommand
+
+    coatiDown:
+    addq $4, %rax #move the nextMove pointer down into the next row to prepare for a potential D move
+    cmpq $23, %rax # check if this is outside the cell range
+    jge outOfBoundsError
+    jmp coatiForward #recycle the forward code
+
+    coatiUp:
+    cmpq $4, %rax
+    jl outOfBoundsError #If rax is in the first row and you move up, this is an illegal move
+    subq $4, %rax #move the nextMove pointer up into the above row to prepare the move
+    jmp coatiForward
+    
+
     coatiForward:
-    movq $1, %r12 #next time it will be the Bees' turn
-
-    movq %rcx, %rax #let rax store the address of the input cell
-    incq %rax #rax is the cell forward from rcx. We know we don't get column overflow because of the win condition.
-
-    cmpb $'.' , table(%rax) #check if it is empty
+    cmpb $'.' , table(%rax) #check if the target cell is empty
     jne invalidForwardCell
 
     movb $'.' , table(%rcx) #delete the coati from its current cell
     movb $'C' , table(%rax) #place the Coati in the cell in front
 
-    #check win condition - if the coati is in the last column, or rcx mod 4 = 3 call the coatiWin subroutine
+    cmpb $'B' , table-1(%rax) #check the taking condition
+    jne winCheck
+    movb $'.' , table-1(%rax) #delete the enemy behind
+    #TODO<---------------------------------------------------------------------------------------THIS IS THE EXECUTION OF TAKING. RANDOM NUMBER GENERATION JMP SHOULD HAPPEN HERE.
+
+    winCheck:#check win condition - if the coati is in the last column, or rcx mod 4 = 3 call the coatiWin subroutine
     andq $3, %rax #preserve only the last 2 bits because they decide mod 4. Works cause 3=...011.
     cmpq $3, %rax # if they are still equal to 3, we are in the last row
     je coatiWin
+
+    movq $1, %r12 #next time it will be the Bees' turn
 
     jmp gameInputLoop
 
@@ -226,4 +269,23 @@ movq $0, %rax
 call printf
 jmp gameInputLoop
 
+outOfBoundsError:
+movq $errorFormat, %rdi
+movq $outOfBoundsMessage, %rsi
+movq $0, %rax
+call printf
+jmp gameInputLoop
 
+invalidCommand:
+movq $errorFormat, %rdi
+movq $invalidCommandLetterMessage, %rsi
+movq $0, %rax
+call printf
+jmp gameInputLoop
+
+invalidColumnInput:
+movq $errorFormat, %rdi
+movq $invalidColumnInputMessage, %rsi
+movq $0, %rax
+call printf
+jmp gameInputLoop
