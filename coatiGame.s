@@ -465,6 +465,9 @@ beeTurn:
 
     jmp gameInputLoop
 
+randomNumberGen:
+
+
 
 promptCoatis:
 movq $generalFormat, %rdi
