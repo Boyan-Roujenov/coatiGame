@@ -328,7 +328,7 @@ coatiTurn:
     coatiDown:
     addq $4, %rax #move the nextMove pointer down into the next row to prepare for a potential D move
     cmpq $23, %rax # check if this is outside the cell range
-    jge outOfBoundsError
+    jg outOfBoundsError
     jmp coatiForward #recycle the forward code
 
     coatiUp:
