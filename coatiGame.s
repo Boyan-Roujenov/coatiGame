@@ -1,6 +1,66 @@
 .data
 table: 
 .asciz "....C..BC..BC..BC..B...."
+
+tableFormat:
+.byte 10
+.ascii "+-----+-----------+-----------+-----------+-----------+"
+.byte 10
+.ascii "|     |     1     |     2     |     3     |     4     |"
+.byte 10
+.ascii "+=====+===========+===========+===========+===========+"
+.byte 10
+.ascii "|     |           |           |           |           |"
+.byte 10
+rowA:.ascii "|  A  |           |           |           |           |"
+.byte 10
+.ascii "|     |           |           |           |           |"
+.byte 10
+.ascii "+-----+-----------+-----------+-----------+-----------+"
+.byte 10
+.ascii "|     |           |           |           |           |"
+.byte 10
+rowB: .ascii "|  B  |           |           |           |           |"
+.byte 10
+.ascii "|     |           |           |           |           |"
+.byte 10
+.ascii "+-----+-----------+-----------+-----------+-----------+"
+.byte 10
+.ascii "|     |           |           |           |           |"
+.byte 10
+rowC:.ascii "|  C  |           |           |           |           |"
+.byte 10
+.ascii "|     |           |           |           |           |"
+.byte 10
+.ascii "+-----+-----------+-----------+-----------+-----------+"
+.byte 10
+.ascii "|     |           |           |           |           |"
+.byte 10
+rowD:.ascii "|  D  |           |           |           |           |"
+.byte 10
+.ascii "|     |           |           |           |           |"
+.byte 10
+.ascii "+-----+-----------+-----------+-----------+-----------+"
+.byte 10
+.ascii "|     |           |           |           |           |"
+.byte 10
+rowE:.ascii "|  E  |           |           |           |           |"
+.byte 10
+.ascii "|     |           |           |           |           |"
+.byte 10
+.ascii "+-----+-----------+-----------+-----------+-----------+"
+.byte 10
+.ascii "|     |           |           |           |           |"
+.byte 10
+rowF:.ascii "|  F  |           |           |           |           |"
+.byte 10
+.ascii "|     |           |           |           |           |"
+.byte 10
+.ascii "+-----+-----------+-----------+-----------+-----------+"
+.byte 10
+.byte 10
+.zero 1
+
 format: .asciz "%3s" # We will only and exactly read three characters so we use %3s for safety
 
 invalidCoatiMessage: .byte 10
@@ -119,13 +179,74 @@ movq %rbp, %rsp
 popq %rbp
 ret
 
-gameInputLoop:
-    #print the current table
+formatTable:
+#move each true table cell, incremented by 1 to each formated, incremented by 12
+    movb (%rdi), %al
+    movb %al, rowA+12
+    movb 1(%rdi), %al
+    movb %al, rowA+24
+    movb 2(%rdi), %al
+    movb %al, rowA+36
+    movb 3(%rdi), %al
+    movb %al, rowA+48
+
+    movb 4(%rdi), %al
+    movb %al, rowB+12
+    movb 5(%rdi), %al
+    movb %al, rowB+24
+    movb 6(%rdi), %al
+    movb %al, rowB+36
+    movb 7(%rdi), %al
+    movb %al, rowB+48
+
+    movb 8(%rdi), %al
+    movb %al, rowC+12
+    movb 9(%rdi), %al
+    movb %al, rowC+24
+    movb 10(%rdi), %al
+    movb %al, rowC+36
+    movb 11(%rdi), %al
+    movb %al, rowC+48
+
+    movb 12(%rdi), %al
+    movb %al, rowD+12
+    movb 13(%rdi), %al
+    movb %al, rowD+24
+    movb 14(%rdi), %al
+    movb %al, rowD+36
+    movb 15(%rdi), %al
+    movb %al, rowD+48
+
+    movb 16(%rdi), %al
+    movb %al, rowE+12
+    movb 17(%rdi), %al
+    movb %al, rowE+24
+    movb 18(%rdi), %al
+    movb %al, rowE+36
+    movb 19(%rdi), %al
+    movb %al, rowE+48
+
+    movb 20(%rdi), %al
+    movb %al, rowF+12
+    movb 21(%rdi), %al
+    movb %al, rowF+24
+    movb 22(%rdi), %al
+    movb %al, rowF+36
+    movb 23(%rdi), %al
+    movb %al, rowF+48
+
     movq $generalFormat, %rdi
-    movq $table, %rsi
+    movq $tableFormat, %rsi
     movq $0, %rax
     call printf
+    jmp checkTurn
 
+gameInputLoop:
+    #print the current table
+    movq $table, %rdi #provide the working table as an argument to the formatTable subroutine
+    jmp formatTable
+
+    checkTurn:
     cmpq $0, %r12 #check if it is a Coati turn in order to prompt
     je promptCoatis
     jmp promptBees
@@ -266,8 +387,84 @@ coatiTurn:
     jmp gameInputLoop
 
 beeTurn:
-movq $0, %r12 #for now we just test coatis
-jmp gameInputLoop
+    cmpb $'B', table(%rcx) #Check if the requested cell indeed has a bee
+    jne invalidBee
+
+    movq %rcx, %rax #let rax store the address of the input cell
+    decq %rax #after DECREMENT this time, rax is now the cell forward from rcx. We know we don't get column overflow because of the win condition.
+
+    cmpb $'F', %dl #check if the command is F, forward
+    je beeForward
+
+    cmpb $'D', %dl #check if the command is D, forward and down
+    je beeDown
+
+    cmpb $'U', %dl #check if the command is U, forward and up
+    je beeUp
+
+    jmp invalidCommand
+
+    beeDown:
+    addq $4, %rax #move the nextMove pointer down into the next row to prepare for a potential D move
+    cmpq $23, %rax # check if this is outside the cell range
+    jge outOfBoundsError
+    jmp beeForward #recycle the forward code
+
+    beeUp:
+    cmpq $4, %rax
+    jl outOfBoundsError #If rax is in the first row and you move up, this is an illegal move
+    subq $4, %rax #move the nextMove pointer up into the above row to prepare the move
+    jmp beeForward
+    
+
+    beeForward:
+    cmpb $'.' , table(%rax) #check if the target cell is empty
+    jne invalidForwardCellBee
+
+    movb $'.' , table(%rcx) #delete the bee from its current cell
+    movb $'B' , table(%rax) #place the Bee in the cell in front
+
+    cmpb $'C' , table+1(%rax) #check the taking condition
+    jne winCheckBee
+    movb $'.' , table+1(%rax) #delete the enemy behind
+    #TODO<---------------------------------------------------------------------------------------THIS IS THE EXECUTION OF TAKING. RANDOM NUMBER GENERATION JMP SHOULD HAPPEN HERE.
+
+    winCheckBee:#check win condition - if the bee is in the last column, or rax mod 4 = 0 call the coatiWin subroutine
+    andq $3, %rax #preserve only the last 2 bits because they decide mod 4. Works cause 3=...011.
+    cmpq $0, %rax # if they are still equal to 0, we are in the last row
+    je beeWin
+
+    movq $0, %r12 #next time it will be the Coati's turn
+
+    jmp gameInputLoop
+
+    beeWin:
+    #Print the final board:
+
+    #Win Message
+    movq $errorFormat, %rdi #print a specific message. We recycle the errorFormat
+    movq $beeWinMessage, %rsi
+    movq $0, %rax
+    call printf
+
+    jmp epilogue
+
+    invalidBee:
+    movq $errorFormat, %rdi #print a specific error message
+    movq $invalidBeeMessage, %rsi
+    movq $0, %rax
+    call printf
+
+    jmp gameInputLoop
+
+    invalidForwardCellBee:
+    movq $errorFormat, %rdi #print a specific error message
+    movq $invalidMoveMessage, %rsi
+    movq $0, %rax
+    call printf
+
+    jmp gameInputLoop
+
 
 promptCoatis:
 movq $generalFormat, %rdi
