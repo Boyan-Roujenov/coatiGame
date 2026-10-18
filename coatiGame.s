@@ -173,6 +173,32 @@ waitForEnter:
 continuePrompt:
     .asciz "\nType y and press Enter to continue: "
 
+comebackPrompt:
+    .ascii "\nCOMEBACK CHALLENGE!\n"
+    .ascii "The loser has a chance to steal the win if they manage to complete the Kingdom's Milenium Problem (without AI):\n"
+    .ascii "Convert 8-bit two's complement 00010011 to BSSS-777,\n"
+    .ascii "then multiply by 4 in that representation.\n"
+    .ascii "Format: inverted sign, 8-bit exponent with Excess-69,\n"
+    .ascii "10 bit mantissa and a hidden bit.\n"
+    .asciz "Enter the final 19 bits without spaces: "
+
+
+comebackAnswer:
+    .asciz "1010010110011000000"
+
+answerInputFormat:
+    .asciz "%31s"
+answerBuffer:
+    .zero 32
+
+defencePrompt:
+    .ascii "\nBut to be fair, the winners have one last line of defense!\n"
+    .ascii "Enter the correct answer to keep your title.\n"
+    .asciz " 1+1=? "
+
+defenceAnswer:
+    .asciz "1" #the correct answer is 1 :)))))
+
 .text
 .globl main
 main:
@@ -394,15 +420,13 @@ coatiTurn:
     winCheck:#check win condition - if the coati is in the last column, or rcx mod 4 = 3 call the coatiWin subroutine
     andq $3, %rax #preserve only the last 2 bits because they decide mod 4. Works cause 3=...011.
     cmpq $3, %rax # if they are still equal to 3, we are in the last row
-    je coatiWin
+    je provisionalWinner #go to comeback
 
     movq $1, %r12 #next time it will be the Bees' turn
 
     jmp gameInputLoop
 
     coatiWin:
-    #Print the final board:
-
     #Win Message
     movq $errorFormat, %rdi #print a specific message. We recycle the errorFormat
     movq $coatiWinMessage, %rsi
@@ -484,15 +508,13 @@ beeTurn:
     winCheckBee:#check win condition - if the bee is in the last column, or rax mod 4 = 0 call the coatiWin subroutine
     andq $3, %rax #preserve only the last 2 bits because they decide mod 4. Works cause 3=...011.
     cmpq $0, %rax # if they are still equal to 0, we are in the last row
-    je beeWin
+    je provisionalWinner #go to comeback
 
     movq $0, %r12 #next time it will be the Coati's turn
 
     jmp gameInputLoop
 
     beeWin:
-    #Print the final board:
-
     #Win Message
     movq $errorFormat, %rdi #print a specific message. We recycle the errorFormat
     movq $beeWinMessage, %rsi
@@ -608,6 +630,65 @@ feardForfiets:
         movq %rbp, %rsp #epilogue
         popq %rbp 
         ret
+
+provisionalWinner:
+    #Print the final board:
+
+
+    movq $generalFormat, %rdi #final challenge to the looser
+    movq $comebackPrompt, %rsi
+    movq $0, %rax
+    call printf
+
+    # Read the answer
+    movq $answerInputFormat, %rdi
+    movq $answerBuffer, %rsi
+    movl $0, %eax
+    call scanf
+
+    cmpl $1, %eax
+    jne finalWinner #make sure an imput was read else go to final winner
+    
+    movq $answerBuffer, %rdi #compare the answers
+    movq $comebackAnswer, %rsi
+    call strcmp
+
+    cmpl $0, %eax #if RAX is 0 they are equal and the answer is correct
+    jne finalWinner #if it's wrong current winner wins
+
+    movq $generalFormat, %rdi
+    movq $defencePrompt, %rsi
+    movq $0, %rax
+    call printf
+
+    #Read and check the winner's answer
+    movq $answerInputFormat, %rdi
+    movq $answerBuffer, %rsi
+    movq $0, %rax
+    call scanf
+
+    cmpl $1, %eax #
+    jne defenceFailed
+
+    movq $answerBuffer, %rdi
+    movq $defenceAnswer, %rsi
+    call strcmp
+
+    cmpl $0, %eax             # Zero means the answer matches
+    jne defenceFailed
+    jmp finalWinner          # Correct: keep the win
+
+defenceFailed:
+    xorq $1, %r12            # Wrong: swap the winner
+    jmp finalWinner
+
+
+finalWinner:
+    #check the value of r12 and jump to bee win or coati win 
+    cmpq $0, %r12
+    je coatiWin
+    jmp beeWin
+
 
 promptCoatis:
 movq $generalFormat, %rdi
