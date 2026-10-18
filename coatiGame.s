@@ -160,13 +160,13 @@ RNTest:
     .asciz "state = %u, roll = %u\n"
 
 fF1Format:
-    .asciz "This turn's FEARDFORFIET: BETRAYAL \n\t The team leaders swap places to the enemies' side\n"
+    .asciz "\nThis turn's FEARED_FORFEIT: BETRAYAL \n\t The team leaders swap places to the enemies' side\n"
 fF2Format:
-    .asciz "This turn's FEARDFORFIET: FF2"
+    .asciz "\nThis turn's FEARED_FORFEIT: PHYSICAL CHECK \n\t The team who just lost a piece has to do 16 SQUATS!\n"
 fF3Format:
-    .asciz "This turn's FEARDFORFIET: FF3"
+    .asciz "\nThis turn's FEARED_FORFEIT: EYE OF RA \n\t Team leaders enter a staring contest. Whoever blinks loses. Winner gets the audience's applause.\n"
 fF4Format:
-    .asciz "This turn's FEARDFORFIET: FF4"
+    .asciz "\nThis turn's FEARED_FORFEIT: GANGSTA_RAP_EXCEPTION \n\t Team leader who just took has to deliver a rap OUT LOUD and IN RHYTHM with the following CO verse:\n I Fetch, Decode, Execute then write BACK, \n Did ya just push - cause I'm the top of the STACK \n I am tough on the bugs, but I write comments gently \n I never segfault, cause I'm the king of ASSEMBLY!!"
 
 waitForEnter:
     .asciz " %c"
@@ -175,7 +175,8 @@ continuePrompt:
 
 comebackPrompt:
     .ascii "\nCOMEBACK CHALLENGE!\n"
-    .ascii "The loser has a chance to steal the win if they manage to complete the Kingdom's Milenium Problem (without AI):\n"
+    .ascii "\One team made a winning move, however...\n"
+    .ascii "The loser has a chance to STEAL the win if they manage to complete the Kingdom's Milenium Problem (without AI):\n"
     .ascii "Convert 8-bit two's complement 00010011 to BSSS-777,\n"
     .ascii "then multiply by 4 in that representation.\n"
     .ascii "Format: inverted sign, 8-bit exponent with Excess-69,\n"
