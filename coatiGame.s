@@ -159,6 +159,20 @@ seed:
 RNTest:
     .asciz "state = %u, roll = %u\n"
 
+fF1Format:
+    .asciz "This turn's FEARDFORFIET: BETRAYAL \n\t The team leaders swap places to the enemies' side\n"
+fF2Format:
+    .asciz "This turn's FEARDFORFIET: FF2"
+fF3Format:
+    .asciz "This turn's FEARDFORFIET: FF3"
+fF4Format:
+    .asciz "This turn's FEARDFORFIET: FF4"
+
+waitForEnter:
+    .asciz " %c"
+continuePrompt:
+    .asciz "\nType y and press Enter to continue: "
+
 .text
 .globl main
 main:
@@ -365,6 +379,17 @@ coatiTurn:
     jne winCheck
     movb $'.' , table-1(%rax) #delete the enemy behind
     #TODO<---------------------------------------------------------------------------------------THIS IS THE EXECUTION OF TAKING. RANDOM NUMBER GENERATION JMP SHOULD HAPPEN HERE.
+    pushq %rax #saving the the value of %rax and keeping stack aligned
+    pushq $67
+
+    #generate forfiet
+    call randomNumberGen #roll dice
+    movq %rax, %rdi 
+    call feardForfiets
+
+    popq %rax
+    popq %rax #restore the value of %rax
+
 
     winCheck:#check win condition - if the coati is in the last column, or rcx mod 4 = 3 call the coatiWin subroutine
     andq $3, %rax #preserve only the last 2 bits because they decide mod 4. Works cause 3=...011.
@@ -445,6 +470,17 @@ beeTurn:
     movb $'.' , table+1(%rax) #delete the enemy behind
     #TODO<---------------------------------------------------------------------------------------THIS IS THE EXECUTION OF TAKING. RANDOM NUMBER GENERATION JMP SHOULD HAPPEN HERE.
 
+    pushq %rax #saving the the value of %rax and keeping stack aligned
+    pushq $67
+
+    #generate forfiet
+    call randomNumberGen #roll dice
+    movq %rax, %rdi 
+    call feardForfiets
+
+    popq %rax
+    popq %rax #restore the value of %rax
+
     winCheckBee:#check win condition - if the bee is in the last column, or rax mod 4 = 0 call the coatiWin subroutine
     andq $3, %rax #preserve only the last 2 bits because they decide mod 4. Works cause 3=...011.
     cmpq $0, %rax # if they are still equal to 0, we are in the last row
@@ -511,6 +547,67 @@ randomNumberGen: #result returned in %rax
     popq %rbp 
     ret
 
+feardForfiets:
+    pushq %rbp #prologue
+    movq %rsp, %rbp
+
+    fF1:#1-25
+        cmpq $25, %rdi #check the result of the dice roll
+        jg fF2
+
+        movq $fF1Format, %rdi
+        movq $0, %rax
+        call printf
+
+        #movq $waitForEnter, %rdi
+        #subq $16, %rsp
+        #leaq 8(%rbp), %rsi
+        #movq $0, %rax
+        #call scanf
+        jmp fFend
+
+    fF2:#26-50    
+        cmpq $50, %rdi 
+        jg fF3
+
+        movq $fF2Format, %rdi
+        movq $0, %rax
+        call printf
+
+        jmp fFend
+
+    fF3:#51-75
+        cmpq $75, %rdi 
+        jg fF4
+
+        movq $fF3Format, %rdi
+        movq $0, %rax
+        call printf
+
+        jmp fFend
+
+    fF4:#76-100
+        movq $fF4Format, %rdi
+        movq $0, %rax
+        call printf
+
+       jmp fFend
+
+    fFend:
+        subq $16, %rsp#space for the input character
+
+        movq $continuePrompt, %rdi
+        movq $0, %rax
+        call printf
+
+        movq $waitForEnter, %rdi
+        leaq (%rsp), %rsi#destination inside allocated space
+        movq $0, %rax
+        call scanf
+
+        movq %rbp, %rsp #epilogue
+        popq %rbp 
+        ret
 
 promptCoatis:
 movq $generalFormat, %rdi
