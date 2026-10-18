@@ -153,6 +153,15 @@ beeWinMessage: .ascii "After a painstaking battle, despite numerous difficulties
 .byte 10
 .zero 1
 
+leaderboardFile: .asciz "leaderboard.txt"
+readScoresFormat: .asciz "%lu %lu"
+saveScoresFormat: .asciz "%lu %lu\n"
+readMode:  .asciz "r"
+writeMode: .asciz "w"
+coatiWins: .quad 0
+beeWins: .quad 0
+fileHandle: .quad 0 #the pointer to the file will be saved in a quadword in memory
+
 seed:
     .skip 4
 
@@ -211,6 +220,10 @@ pushq %r12 #push a random value for stack alignment. Just a second r12 to be sur
 
 movq $0, %r12 #r12 will store whose turn it is - 0 means coati, 1 means bees
 
+jmp loadLeaderboard
+loadingDone:
+
+jmp gameInputLoop
 
 #Another printing test for RNG
 #call randomNumberGen
@@ -220,9 +233,6 @@ movq $0, %r12 #r12 will store whose turn it is - 0 means coati, 1 means bees
 #movq $0, %rax
 #call printf
 
-
-jmp gameInputLoop
-
 #Below is a printing test
 #movq $format, %rdi
 #movq %rsp, %rsi
@@ -230,11 +240,58 @@ jmp gameInputLoop
 #call printf
 
 epilogue:
+jmp saveLeaderboard
+savingDone:
+
 popq %r12
 popq %r12
 movq %rbp, %rsp
 popq %rbp
 ret
+
+loadLeaderboard:
+movq $leaderboardFile, %rdi
+movq $readMode, %rsi #reading mode
+call fopen
+
+cmpq $0, %rax #check for failure
+je loadLeaderboardDone
+movq %rax, fileHandle #If all went well put the pointer in fileHandle
+
+movq %rax, %rdi #file pointer
+movq $readScoresFormat, %rsi
+movq $coatiWins, %rdx
+movq $beeWins, %rcx
+movq $0, %rax
+call fscanf
+
+movq fileHandle, %rdi
+call fclose
+
+    loadLeaderboardDone:
+    jmp loadingDone
+
+
+saveLeaderboard:
+movq $leaderboardFile, %rdi
+movq $writeMode, %rsi # wrtie mode
+call fopen
+
+cmpq $0, %rax #check for failure of opening
+je saveLeaderBoardDone
+movq %rax, fileHandle #If all went well put the pointer in fileHandle
+
+movq %rax, %rdi #give file pointer
+movq $saveScoresFormat, %rsi
+movq coatiWins, %rdx
+movq beeWins, %rcx
+movq $0, %rax #no vector args
+call fprintf # write the scores in format to the file
+
+movq fileHandle, %rdi #prepare the file for closing
+call fclose
+    saveLeaderBoardDone:
+    jmp savingDone
 
 formatTable:
 #move each true table cell, incremented by 1 to each formated, incremented by 12
@@ -434,6 +491,10 @@ coatiTurn:
     movq $0, %rax
     call printf
 
+    movq coatiWins, %r12 #increment leaderboard wins
+    incq %r12
+    movq %r12, coatiWins
+
     jmp epilogue
 
     invalidCoati:
@@ -521,6 +582,10 @@ beeTurn:
     movq $beeWinMessage, %rsi
     movq $0, %rax
     call printf
+
+    movq beeWins, %r12 #increment leaderboard wins
+    incq %r12
+    movq %r12, beeWins
 
     jmp epilogue
 
