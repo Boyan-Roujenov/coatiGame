@@ -156,6 +156,9 @@ beeWinMessage: .ascii "After a painstaking battle, despite numerous difficulties
 seed:
     .skip 4
 
+RNTest:
+    .asciz "state = %u, roll = %u\n"
+
 .text
 .globl main
 main:
@@ -166,6 +169,16 @@ pushq %r12
 pushq %r12 #push a random value for stack alignment. Just a second r12 to be sure.
 
 movq $0, %r12 #r12 will store whose turn it is - 0 means coati, 1 means bees
+
+
+#Another printing test for RNG
+#call randomNumberGen
+#movq %rax, %rdx
+#movl seed, %esi
+#movq $RNTest, %rdi
+#movq $0, %rax
+#call printf
+
 
 jmp gameInputLoop
 
