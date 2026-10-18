@@ -153,6 +153,9 @@ beeWinMessage: .ascii "After a painstaking battle, despite numerous difficulties
 .byte 10
 .zero 1
 
+seed:
+    .skip 4
+
 .text
 .globl main
 main:
@@ -465,8 +468,35 @@ beeTurn:
 
     jmp gameInputLoop
 
-randomNumberGen:
+randomNumberGen: #result returned in %rax
+    pushq %rbp #prologue
+    movq %rsp, %rbp
 
+    #update seed
+    movl seed, %eax #get the new seed from memory
+    movq $1664525, %r8 #prepare for multiplication and addition with useful constants as suggested in
+    mulq %r8
+    addq $1013904223, %rax  # Linear congruential pseudorandom number generator.
+                            # Parameters from:
+                            # W. H. Press, S. A. Teukolsky, W. T. Vetterling, B. P. Flannery,
+                            # Numerical Recipes in C: The Art of Scientific Computing,
+                            # 2nd edition, Cambridge University Press, 1992,
+                            # Section 7.1, p. 284 ("An Even Quicker Generator").
+                            #
+                            # State update: state = (1664525 * state + 1013904223) mod 2^32.
+                            # Assembly implementation written by us.
+    movl %eax, seed #store the last 32 bits of the updated seed equivalent to seed % 2^32
+
+    #dice roll
+    movq $0, %rdx #prepare for devision
+    movq $100, %r8 #we mod by 100 and add 1 to get values 1-100
+    divl %r8d
+    addq $1, %rdx
+    movq %rdx, %rax
+
+    movq %rbp, %rsp #epilogue
+    popq %rbp 
+    ret
 
 
 promptCoatis:
