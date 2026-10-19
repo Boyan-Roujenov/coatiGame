@@ -171,7 +171,7 @@ RNTest:
 fF1Format:
     .asciz "\nThis turn's FEARED_FORFEIT: BETRAYAL \n\t The team leaders swap places to the enemies' side\n"
 fF2Format:
-    .asciz "\nThis turn's FEARED_FORFEIT: PHYSICAL CHECK \n\t The team who just lost a piece has to do 16 SQUATS!\n"
+    .asciz "\nThis turn's FEARED_FORFEIT: THROWING CHECK \n\t The team who just lost a piece has to throw 3 blue balls in the audience, if all the throws and catches are successfull the team get's special prize!\n"
 fF3Format:
     .asciz "\nThis turn's FEARED_FORFEIT: EYE OF RA \n\t Team leaders enter a staring contest. Whoever blinks loses. Winner gets the audience's applause.\n"
 fF4Format:
@@ -797,3 +797,4 @@ movq $invalidColumnInputMessage, %rsi
 movq $0, %rax
 call printf
 jmp gameInputLoop
+#we want 800!
