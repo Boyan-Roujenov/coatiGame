@@ -134,7 +134,7 @@ beePrompt:
 .asciz "YOUR ATTACK: "
 .byte 10
 
-coatiWinMessage: .ascii "After a painstaking battle, despite numerous difficulties, the Coatis prevail. "
+coatiWinMessage: .ascii "\nAfter a painstaking battle, despite numerous difficulties, the Coatis prevail. "
 .byte 10
 .ascii "Their Overlord perhaps had to demonstrate mastery of IEEE-754, "
 .byte 10
@@ -142,14 +142,18 @@ coatiWinMessage: .ascii "After a painstaking battle, despite numerous difficulti
 .byte 10
 .ascii "For that we commend him. Congratulations, team Coati!"
 .byte 10
+.ascii "\n COATIS WIN \n"
+.byte 10
 .zero 1
-beeWinMessage: .ascii "After a painstaking battle, despite numerous difficulties, the Bees prevail. "
+beeWinMessage: .ascii "\nAfter a painstaking battle, despite numerous difficulties, the Bees prevail. "
 .byte 10
 .ascii "Their Overlord perhaps had to demonstrate mastery of IEEE-754, "
 .byte 10
 .ascii "physical strength and strategic thinking, among other tests of Greatness. "
 .byte 10
 .ascii "For that we commend him. Congratulations, team Bees!"
+.byte 10
+.ascii "\n BEES WIN \n"
 .byte 10
 .zero 1
 
