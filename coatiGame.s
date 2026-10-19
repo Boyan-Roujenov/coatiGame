@@ -209,6 +209,11 @@ defencePrompt:
 defenceAnswer:
     .asciz "1" #the correct answer is 1 :)))))
 
+victoryBanner:
+    .ascii "\n\033[1;38;2;255;215;0m"    # Bold gold
+    .ascii "\033[5mWINNER\033[25m"       # Blink only the first WINNER
+    .asciz " WINNER CHICKEN DINNER!\033[0m\n"
+
 .text
 .globl main
 main:
@@ -240,7 +245,12 @@ jmp gameInputLoop
 #call printf
 
 epilogue:
-jmp saveLeaderboard
+    movq $generalFormat, %rdi #print victory banner
+    movq $victoryBanner, %rsi
+    movl $0, %eax
+    call printf
+    jmp saveLeaderboard
+
 savingDone:
 
 popq %r12
