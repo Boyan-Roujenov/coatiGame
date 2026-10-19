@@ -216,7 +216,7 @@ pushq %rbp
 movq %rsp, %rbp
 
 pushq %r12
-pushq %r12 #push a random value for stack alignment. Just a second r12 to be sure.
+pushq %r13
 
 movq $0, %r12 #r12 will store whose turn it is - 0 means coati, 1 means bees
 
@@ -243,7 +243,7 @@ epilogue:
 jmp saveLeaderboard
 savingDone:
 
-popq %r12
+popq %r13
 popq %r12
 movq %rbp, %rsp
 popq %rbp
