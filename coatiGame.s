@@ -176,6 +176,10 @@ fF3Format:
     .asciz "\nThis turn's FEARED_FORFEIT: EYE OF RA \n\t Team leaders enter a staring contest. Whoever blinks loses. Winner gets the audience's applause.\n"
 fF4Format:
     .asciz "\nThis turn's FEARED_FORFEIT: GANGSTA_RAP_EXCEPTION \n\t Team leader who just took has to deliver a rap OUT LOUD and IN RHYTHM with the following CO verse:\n I Fetch, Decode, Execute then write BACK, \n Did ya just push - cause I'm the top of the STACK \n I am tough on the bugs, but I write comments gently \n I never segfault, cause I'm the king of ASSEMBLY!!"
+fF5Format:
+    .asciz "\nThis turn's FEARED_FORFEIT: HYDRATION BREAK \n\t Everyone take a moment to hydrate with a beverage of your choice\n"
+fF6Format:
+    .asciz "\nThis turn's FEARED_FORFEIT: FINGERING COMPETITION \n\t Team leaders enter a THUMB WAR. Whoever manages to hold down the other team captain's thumb down for 3 seconds wins! Winner gets the audience's applause.\n"
 
 waitForEnter:
     .asciz " %c"
@@ -649,8 +653,8 @@ feardForfiets:
     pushq %rbp #prologue
     movq %rsp, %rbp
 
-    fF1:#1-25
-        cmpq $25, %rdi #check the result of the dice roll
+    fF1:#1-20
+        cmpq $20, %rdi #check the result of the dice roll
         jg fF2
 
         movq $fF1Format, %rdi
@@ -664,8 +668,8 @@ feardForfiets:
         #call scanf
         jmp fFend
 
-    fF2:#26-50    
-        cmpq $50, %rdi 
+    fF2:#21-40    
+        cmpq $40, %rdi 
         jg fF3
 
         movq $fF2Format, %rdi
@@ -674,8 +678,8 @@ feardForfiets:
 
         jmp fFend
 
-    fF3:#51-75
-        cmpq $75, %rdi 
+    fF3:#41-60
+        cmpq $60, %rdi 
         jg fF4
 
         movq $fF3Format, %rdi
@@ -684,12 +688,35 @@ feardForfiets:
 
         jmp fFend
 
-    fF4:#76-100
+    fF4:#61-80
+        cmpq $80, %rdi 
+        jg fF5
+
         movq $fF4Format, %rdi
         movq $0, %rax
         call printf
 
        jmp fFend
+    
+    fF5:#81-90
+        cmpq $90, %rdi 
+        jg fF6
+
+        movq $fF5Format, %rdi
+        movq $0, %rax
+        call printf
+
+        jmp fFend
+
+    fF6:#91-100
+
+        movq $fF6Format, %rdi
+        movq $0, %rax
+        call printf
+
+        jmp fFend
+
+
 
     fFend:
         subq $16, %rsp#space for the input character
