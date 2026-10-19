@@ -224,6 +224,7 @@ pushq %r12
 pushq %r13
 
 movq $0, %r12 #r12 will store whose turn it is - 0 means coati, 1 means bees
+movq $0, %r13 #r13 will store whether it is time to force a challenge
 
 jmp loadLeaderboard
 loadingDone:
@@ -491,6 +492,10 @@ coatiTurn:
     je provisionalWinner #go to comeback
 
     movq $1, %r12 #next time it will be the Bees' turn
+    incq %r13
+    cmpq $3, %r13
+    je forceForfeit
+    returnFromForfeit:
 
     jmp gameInputLoop
 
@@ -522,6 +527,21 @@ coatiTurn:
     call printf
 
     jmp gameInputLoop
+
+    forceForfeit:
+    movq $0, %r13 #reset r13
+    
+    pushq %rax #saving the the value of %rax and keeping stack aligned
+    pushq $67
+
+    #generate forfiet
+    call randomNumberGen #roll dice
+    movq %rax, %rdi 
+    call feardForfiets
+
+    popq %rax
+    popq %rax #restore the value of %rax
+    jmp returnFromForfeit
 
 beeTurn:
     cmpb $'B', table(%rcx) #Check if the requested cell indeed has a bee
@@ -584,6 +604,11 @@ beeTurn:
 
     movq $0, %r12 #next time it will be the Coati's turn
 
+    incq %r13
+    cmpq $3, %r13
+    je forceForfeitBee
+    returnFromForfeitBee:
+
     jmp gameInputLoop
 
     beeWin:
@@ -614,6 +639,21 @@ beeTurn:
     call printf
 
     jmp gameInputLoop
+
+    forceForfeitBee:
+    movq $0, %r13 #reset r13
+
+    pushq %rax #saving the the value of %rax and keeping stack aligned
+    pushq $67
+
+    #generate forfiet
+    call randomNumberGen #roll dice
+    movq %rax, %rdi 
+    call feardForfiets
+
+    popq %rax
+    popq %rax #restore the value of %rax
+    jmp returnFromForfeitBee
 
 randomNumberGen: #result returned in %rax
     pushq %rbp #prologue
